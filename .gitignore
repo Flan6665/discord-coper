@@ -15,3 +15,6 @@ venv/
 node_modules/
 npm-debug.log*
 package-lock.json
+
+# release build artifacts
+dist/

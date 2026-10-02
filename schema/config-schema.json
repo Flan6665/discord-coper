@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Flan6665/discord-coper/releases/download/v1.0.0/config-schema.json",
+  "title": "discord-coper server config",
+  "description": "Structure-only snapshot of a Discord guild: roles, categories, channels and role-based permission overwrites. Permission bitfields are decimal strings (v2) because Discord permission values exceed JavaScript's 2^53 safe-integer limit; plain numbers are accepted for v1 compatibility.",
+  "type": "object",
+  "required": ["schema_version", "everyone_permissions", "roles", "categories", "uncategorized_channels"],
+  "properties": {
+    "schema_version": { "type": "integer", "enum": [1, 2] },
+    "source_guild_name": { "type": "string" },
+    "everyone_permissions": { "$ref": "#/$defs/bitfield" },
+    "roles": { "type": "array", "items": { "$ref": "#/$defs/role" } },
+    "categories": { "type": "array", "items": { "$ref": "#/$defs/category" } },
+    "uncategorized_channels": { "type": "array", "items": { "$ref": "#/$defs/channel" } },
+    "_owner_id": { "type": ["integer", "string"], "description": "Discord user ID of whoever ran /copy." }
+  },
+  "$defs": {
+    "bitfield": {
+      "description": "Discord permission bitfield. Decimal string (v2) or number (v1).",
+      "oneOf": [
+        { "type": "string", "pattern": "^[0-9]+$" },
+        { "type": "integer", "minimum": 0 }
+      ]
+    },
+    "role": {
+      "type": "object",
+      "required": ["name", "permissions", "color", "hoist", "mentionable", "position"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "permissions": { "$ref": "#/$defs/bitfield" },
+        "color": { "type": "integer", "minimum": 0, "maximum": 16777215 },
+        "hoist": { "type": "boolean" },
+        "mentionable": { "type": "boolean" },
+        "position": { "type": "integer" }
+      }
+    },
+    "overwrite": {
+      "type": "object",
+      "required": ["role", "is_default", "allow", "deny"],
+      "properties": {
+        "role": { "type": "string" },
+        "is_default": { "type": "boolean", "description": "True for the @everyone role." },
+        "allow": { "$ref": "#/$defs/bitfield" },
+        "deny": { "$ref": "#/$defs/bitfield" }
+      }
+    },
+    "category": {
+      "type": "object",
+      "required": ["name", "position", "overwrites", "channels"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "position": { "type": "integer" },
+        "overwrites": { "type": "array", "items": { "$ref": "#/$defs/overwrite" } },
+        "channels": { "type": "array", "items": { "$ref": "#/$defs/channel" } }
+      }
+    },
+    "channel": {
+      "type": "object",
+      "required": ["name", "position", "overwrites", "type"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "type": { "enum": ["text", "voice", "stage", "forum"] },
+        "position": { "type": "integer" },
+        "overwrites": { "type": "array", "items": { "$ref": "#/$defs/overwrite" } },
+        "topic": { "type": ["string", "null"], "maxLength": 1024 },
+        "nsfw": { "type": "boolean" },
+        "slowmode_delay": { "type": "integer", "minimum": 0, "maximum": 21600 },
+        "bitrate": { "type": "integer", "minimum": 8000 },
+        "user_limit": { "type": "integer", "minimum": 0, "maximum": 99 }
+      }
+    }
+  }
+}

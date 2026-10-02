@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "source_guild_name": "My Community",
+  "everyone_permissions": "104324673",
+  "roles": [
+    {
+      "name": "Moderator",
+      "permissions": "1099511627782",
+      "color": 3447003,
+      "hoist": true,
+      "mentionable": true,
+      "position": 3
+    },
+    {
+      "name": "Admin",
+      "permissions": "1152921504606846975",
+      "color": 16711680,
+      "hoist": true,
+      "mentionable": false,
+      "position": 5
+    }
+  ],
+  "categories": [
+    {
+      "name": "Staff",
+      "position": 0,
+      "overwrites": [
+        { "role": "@everyone", "is_default": true, "allow": "0", "deny": "1024" },
+        { "role": "Moderator", "is_default": false, "allow": "1024", "deny": "0" }
+      ],
+      "channels": [
+        {
+          "name": "mod-chat",
+          "type": "text",
+          "position": 0,
+          "topic": "Staff only",
+          "nsfw": false,
+          "slowmode_delay": 0,
+          "overwrites": []
+        },
+        {
+          "name": "Staff Voice",
+          "type": "voice",
+          "position": 1,
+          "bitrate": 96000,
+          "user_limit": 10,
+          "overwrites": []
+        }
+      ]
+    }
+  ],
+  "uncategorized_channels": [
+    {
+      "name": "lobby",
+      "type": "text",
+      "position": 0,
+      "topic": null,
+      "nsfw": false,
+      "slowmode_delay": 5,
+      "overwrites": []
+    }
+  ]
+}

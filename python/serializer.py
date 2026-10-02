@@ -11,7 +11,10 @@ from __future__ import annotations
 import discord
 
 # Config format version. Bump when the on-disk shape changes incompatibly.
-SCHEMA_VERSION = 1
+# v2: permission bitfields are stored as decimal *strings* rather than numbers,
+#     so the config stays exact in JavaScript (which loses integer precision
+#     above 2**53) and is interchangeable with the Node implementation.
+SCHEMA_VERSION = 2
 
 
 # --------------------------------------------------------------------------- #
@@ -32,8 +35,8 @@ def _overwrites_to_list(channel: discord.abc.GuildChannel) -> list[dict]:
             {
                 "role": target.name,
                 "is_default": target.is_default(),  # @everyone
-                "allow": allow.value,
-                "deny": deny.value,
+                "allow": str(allow.value),
+                "deny": str(deny.value),
             }
         )
     return result
@@ -58,7 +61,7 @@ def serialize_guild(guild: discord.Guild) -> dict:
         roles.append(
             {
                 "name": role.name,
-                "permissions": role.permissions.value,
+                "permissions": str(role.permissions.value),
                 "color": role.color.value,
                 "hoist": role.hoist,
                 "mentionable": role.mentionable,
@@ -66,7 +69,7 @@ def serialize_guild(guild: discord.Guild) -> dict:
             }
         )
 
-    everyone_permissions = guild.default_role.permissions.value
+    everyone_permissions = str(guild.default_role.permissions.value)
 
     categories = []
     for category in sorted(guild.categories, key=lambda c: c.position):
@@ -131,6 +134,11 @@ class ApplyResult:
         self.warnings: list[str] = []
 
 
+def _perm(value: str | int) -> int:
+    """Read a permission bitfield stored as a string (v2) or number (v1)."""
+    return int(value)
+
+
 def _build_overwrites(
     entries: list[dict], role_map: dict[str, discord.Role], everyone: discord.Role
 ) -> dict[discord.Role, discord.PermissionOverwrite]:
@@ -142,8 +150,8 @@ def _build_overwrites(
             role = role_map.get(entry["role"])
         if role is None:
             continue
-        allow = discord.Permissions(entry["allow"])
-        deny = discord.Permissions(entry["deny"])
+        allow = discord.Permissions(_perm(entry["allow"]))
+        deny = discord.Permissions(_perm(entry["deny"]))
         overwrites[role] = discord.PermissionOverwrite.from_pair(allow, deny)
     return overwrites
 
@@ -191,7 +199,7 @@ async def apply_config(
     # @everyone permissions.
     try:
         await guild.default_role.edit(
-            permissions=discord.Permissions(config["everyone_permissions"]),
+            permissions=discord.Permissions(_perm(config["everyone_permissions"])),
             reason=reason,
         )
     except discord.HTTPException:
@@ -203,7 +211,7 @@ async def apply_config(
         try:
             role = await guild.create_role(
                 name=role_data["name"],
-                permissions=discord.Permissions(role_data["permissions"]),
+                permissions=discord.Permissions(_perm(role_data["permissions"])),
                 colour=discord.Colour(role_data["color"]),
                 hoist=role_data["hoist"],
                 mentionable=role_data["mentionable"],

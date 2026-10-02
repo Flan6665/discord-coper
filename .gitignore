@@ -1,7 +1,17 @@
+# secrets
 .env
-__pycache__/
-*.pyc
+
+# saved server configs (treat the IDs as private)
 configs/*.json
 !configs/.gitkeep
+
+# python
+__pycache__/
+*.pyc
 .venv/
 venv/
+
+# node
+node_modules/
+npm-debug.log*
+package-lock.json
